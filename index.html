@@ -823,7 +823,7 @@
         // ================================================================
         // 🔴 APPS SCRIPT URL — YAHAN APNA DEPLOYED URL DAALEIN
         // ================================================================
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEfd8ya0jJVh4tiVswU_OLnttUPj1dfdL5sEOegX-fjllfw-Vstkr-2bxpre_LHzi2/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_N6Vg1Lumj6VNZHLMsPVd45PZcWKzKKnFHXE3NVE0g1VBCkgYKb-dQ9Xrtvb-Zuz9/exec';
 
         // ================================================================
         //  STAR LOGIC
@@ -902,7 +902,7 @@
                     audioPreview.src = url;
                     audioPreview.classList.remove('hidden');
                     voiceStatus.innerHTML =
-                    '<i class="fas fa-spinner fa-spin mr-1 text-red-500"></i> Processing...';
+                        '<i class="fas fa-spinner fa-spin mr-1 text-red-500"></i> Processing...';
 
                     // Convert blob to base64
                     const reader = new FileReader();
@@ -918,7 +918,7 @@
                     };
                     reader.onerror = function() {
                         voiceStatus.innerHTML =
-                        '<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Conversion failed';
+                            '<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Conversion failed';
                     };
                 };
 
@@ -984,7 +984,7 @@
         });
 
         // ================================================================
-        //  RESET
+        //  RESET — FIXED: Stars inline styles bhi clear honge
         // ================================================================
         const form = document.getElementById('feedbackForm');
         const successContainer = document.getElementById('successContainer');
@@ -992,27 +992,49 @@
         const statusMsg = document.getElementById('statusMsg');
 
         function resetForm() {
+            // Hide success, show form
             successContainer.classList.remove('show');
             successContainer.style.display = 'none';
             form.classList.remove('hidden-form');
             form.style.display = 'block';
+
+            // Reset all form fields
             form.reset();
-            document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+
+            // ── STARS: Remove active class AND inline styles ──
+            document.querySelectorAll('.star').forEach(s => {
+                s.classList.remove('active');
+                // Hover/click se jo inline styles set hue hain, unhein hatao
+                s.style.color = '';
+                s.style.textShadow = '';
+                s.style.transform = '';
+            });
+
+            // Hidden inputs reset
             document.querySelectorAll('.star-group input[type="hidden"]').forEach(h => h.value = '0');
+
+            // Voice reset
             document.getElementById('voiceUrl').value = '';
             recordedBase64 = '';
             recordedFileName = '';
             document.getElementById('audioPreview').classList.add('hidden');
             document.getElementById('audioPreview').src = '';
             document.getElementById('voiceStatus').innerHTML = '<i class="fas fa-info-circle mr-1"></i> Ready';
+
+            // File reset
             fileBase64 = '';
             fileBase64Name = '';
             fileStatus.textContent = 'Drag or click to upload.';
+
+            // Buttons reset
             recordBtn.innerHTML = '<i class="fas fa-circle mr-1"></i> Record';
             recordBtn.disabled = false;
             stopBtn.disabled = true;
+
+            // Status message
             statusMsg.classList.add('hidden');
         }
+
         resetBtn.addEventListener('click', resetForm);
 
         // ================================================================
