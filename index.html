@@ -973,7 +973,7 @@
         });
 
         // ================================================================
-        //  VOICE RECORDER (Base64 for Google Drive) — FIXED (no alert)
+        //  VOICE RECORDER (Original — with alert)
         // ================================================================
         let mediaRecorder, audioChunks = [];
         let recordedBase64 = '';
@@ -1000,13 +1000,15 @@
                     voiceStatus.innerHTML =
                         '<i class="fas fa-spinner fa-spin mr-1 text-red-500"></i> Processing...';
 
+                    // Convert blob to base64
                     const reader = new FileReader();
                     reader.readAsDataURL(blob);
                     reader.onload = function() {
                         const base64Data = reader.result.split(',')[1];
                         recordedBase64 = base64Data;
                         recordedFileName = 'voice_' + Date.now() + '.webm';
-                        voiceUrlInput.value = 'file:' + recordedFileName;
+                        // Store in hidden input
+                        voiceUrlInput.value = 'file:' + recordedFileName; // temporary marker
                         voiceStatus.innerHTML =
                             '<i class="fas fa-check-circle text-green-600 mr-1"></i> Recorded!';
                     };
@@ -1022,13 +1024,12 @@
                 stopBtn.disabled = false;
                 voiceStatus.innerHTML =
                     '<span class="text-red-600 recording-indicator font-bold">● RECORDING</span>';
-                voiceStatus.style.color = '';
             } catch (err) {
-                // ❌ Alert removed — friendly message
-                voiceStatus.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Mic access denied. Please allow microphone in your browser settings and try again.';
-                voiceStatus.style.color = 'red';
+                // Original behavior: alert
+                alert('Mic access denied!');
+                // Reset button state so user can try again
                 recordBtn.disabled = false;
-                recordBtn.innerHTML = '<i class="fas fa-microphone mr-1"></i> Record';
+                recordBtn.innerHTML = '<i class="fas fa-circle mr-1"></i> Record';
                 stopBtn.disabled = true;
             }
         });
