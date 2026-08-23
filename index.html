@@ -973,7 +973,7 @@
         });
 
         // ================================================================
-        //  VOICE RECORDER (Original — with alert)
+        //  VOICE RECORDER — iPhone Compatible (audio/mp4 for Safari)
         // ================================================================
         let mediaRecorder, audioChunks = [];
         let recordedBase64 = '';
@@ -985,15 +985,30 @@
         const audioPreview = document.getElementById('audioPreview');
         const voiceUrlInput = document.getElementById('voiceUrl');
 
+        // ── Detect supported MIME type ──
+        function getSupportedMimeType() {
+            const types = ['audio/mp4', 'audio/aac', 'audio/webm', 'audio/ogg'];
+            for (let type of types) {
+                if (MediaRecorder.isTypeSupported(type)) {
+                    return type;
+                }
+            }
+            return null; // fallback to default
+        }
+
         recordBtn.addEventListener('click', async () => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                const mimeType = getSupportedMimeType();
+                const options = mimeType ? { mimeType: mimeType } : {};
+                mediaRecorder = new MediaRecorder(stream, options);
                 audioChunks = [];
 
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    // Use the same MIME type for the blob
+                    const blobType = mimeType || 'audio/webm';
+                    const blob = new Blob(audioChunks, { type: blobType });
                     const url = URL.createObjectURL(blob);
                     audioPreview.src = url;
                     audioPreview.classList.remove('hidden');
@@ -1007,8 +1022,7 @@
                         const base64Data = reader.result.split(',')[1];
                         recordedBase64 = base64Data;
                         recordedFileName = 'voice_' + Date.now() + '.webm';
-                        // Store in hidden input
-                        voiceUrlInput.value = 'file:' + recordedFileName; // temporary marker
+                        voiceUrlInput.value = 'file:' + recordedFileName;
                         voiceStatus.innerHTML =
                             '<i class="fas fa-check-circle text-green-600 mr-1"></i> Recorded!';
                     };
@@ -1025,9 +1039,7 @@
                 voiceStatus.innerHTML =
                     '<span class="text-red-600 recording-indicator font-bold">● RECORDING</span>';
             } catch (err) {
-                // Original behavior: alert
                 alert('Mic access denied!');
-                // Reset button state so user can try again
                 recordBtn.disabled = false;
                 recordBtn.innerHTML = '<i class="fas fa-circle mr-1"></i> Record';
                 stopBtn.disabled = true;
