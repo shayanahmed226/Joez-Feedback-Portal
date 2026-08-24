@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Joe'z Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="Joe'z Logo.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            font-family: 'Poppins', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        :root {
+            --primary: #ef241e;
+            --primary-dark: #cc1a00;
+            --yellow: #ffd200;
+            --dark: #1a1a1a;
+        }
+
+        .login-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #ef241e, #cc1a00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .login-screen.hidden {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+        .login-box {
+            background: white;
+            padding: 2.5rem 2rem;
+            border-radius: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .login-box .logo-sm {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ef241e;
+            margin: 0 auto 0.75rem;
+        }
+        .login-box h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.2rem;
+        }
+        .login-box p {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 1.2rem;
+        }
+        .login-box .input-group {
+            text-align: left;
+            margin-bottom: 0.8rem;
+        }
+        .login-box .input-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #374151;
+            display: block;
+            margin-bottom: 0.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .login-box .input-group input {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.8rem;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border 0.3s ease;
+        }
+        .login-box .input-group input:focus {
+            border-color: #ef241e;
+            box-shadow: 0 0 0 4px rgba(239, 36, 30, 0.1);
+        }
+        .login-box .login-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #ef241e;
+            color: white;
+            border: none;
+            border-radius: 0.8rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.3rem;
+        }
+        .login-box .login-btn:hover {
+            background: #cc1a00;
+            transform: scale(1.02);
+        }
+        .login-box .login-error {
+            color: #ef241e;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .dashboard-wrapper {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .dashboard-wrapper.active {
+            display: flex;
+        }
+
+        .dash-header {
+            background: white;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.92);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .dash-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .dash-header .brand img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ef241e;
+        }
+        .dash-header .brand h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .dash-header .brand h1 span {
+            color: #ef241e;
+        }
+        .dash-header .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .dash-header .header-actions .last-updated {
+            font-size: 0.6rem;
+            color: #9ca3af;
+            display: none;
+        }
+        @media (min-width:768px) {
+            .dash-header .header-actions .last-updated {
+                display: inline;
+            }
+        }
+        .dash-header .header-actions .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+            color: #374151;
+            font-weight: 500;
+            background: #f3f4f6;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+        }
+        .dash-header .header-actions .user-badge i {
+            color: #ef241e;
+        }
+        .dash-header .header-actions .refresh-btn {
+            padding: 0.35rem 0.9rem;
+            background: #ef241e;
+            color: white;
+            border: none;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .dash-header .header-actions .refresh-btn:hover {
+            background: #cc1a00;
+            transform: scale(1.03);
+        }
+        .dash-header .header-actions .refresh-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .dash-header .header-actions .logout-btn {
+            padding: 0.35rem 0.9rem;
+            background: transparent;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .dash-header .header-actions .logout-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .dash-content {
+            flex: 1;
+            padding: 1.2rem;
+            max-width: 1440px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+        .kpi-card {
+            background: white;
+            border-radius: 0.8rem;
+            padding: 1rem 1rem 0.8rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+        }
+        .kpi-card .kpi-icon {
+            float: right;
+            font-size: 1.4rem;
+            color: rgba(239, 36, 30, 0.12);
+            margin-top: -0.2rem;
+        }
+        .kpi-card .kpi-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .kpi-card .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.2;
+            margin-top: 0.1rem;
+        }
+        .kpi-card .kpi-sub {
+            font-size: 0.6rem;
+            color: #9ca3af;
+            margin-top: 0.1rem;
+        }
+        .kpi-card.accent .kpi-value {
+            color: #ef241e;
+        }
+        .kpi-card.accent-yellow .kpi-value {
+            color: #ffd200;
+        }
+        .kpi-card.accent-green .kpi-value {
+            color: #22c55e;
+        }
+        .kpi-card.accent-blue .kpi-value {
+            color: #3b82f6;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+        @media (max-width:768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .chart-card {
+            background: white;
+            border-radius: 0.8rem;
+            padding: 1rem 1rem 0.6rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .chart-card h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.4rem;
+        }
+        .chart-card .chart-wrap {
+            position: relative;
+            height: 180px;
+        }
+        .chart-card .empty-chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+        .chart-card .empty-chart i {
+            font-size: 2rem;
+            color: #d1d5db;
+            margin-bottom: 0.3rem;
+        }
+
+        .table-section {
+            background: white;
+            border-radius: 0.8rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .table-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+        .table-header h3 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .table-header h3 i {
+            color: #ef241e;
+        }
+        .table-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            align-items: center;
+        }
+        .table-controls input,
+        .table-controls select {
+            padding: 0.3rem 0.6rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            outline: none;
+            background: white;
+            transition: border 0.2s ease;
+            min-width: 100px;
+        }
+        .table-controls input:focus,
+        .table-controls select:focus {
+            border-color: #ef241e;
+        }
+        .table-controls .export-btn {
+            padding: 0.3rem 0.8rem;
+            background: #ef241e;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        .table-controls .export-btn:hover {
+            background: #cc1a00;
+            transform: scale(1.02);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+        thead {
+            background: #f9fafb;
+        }
+        th {
+            text-align: left;
+            padding: 0.4rem 0.4rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        th i {
+            font-size: 0.5rem;
+            margin-left: 0.15rem;
+            opacity: 0.4;
+        }
+        td {
+            padding: 0.35rem 0.4rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+            color: #1f2937;
+            font-size: 0.7rem;
+        }
+        tr:hover td {
+            background: #fafafa;
+        }
+        tr.clickable {
+            cursor: pointer;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.1rem 0.5rem;
+            border-radius: 2rem;
+            font-size: 0.55rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .status-badge.new {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .status-badge.in-progress {
+            background: #fffbeb;
+            color: #d97706;
+        }
+        .status-badge.resolved {
+            background: #ecfdf5;
+            color: #059669;
+        }
+        .status-badge.replied {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+        .rating-dots {
+            display: flex;
+            gap: 1px;
+            align-items: center;
+        }
+        .rating-dots .dot {
+            font-size: 0.6rem;
+            color: #d1d5db;
+        }
+        .rating-dots .dot.filled {
+            color: #ffd200;
+        }
+        .rating-dots .rating-num {
+            font-size: 0.55rem;
+            color: #6b7280;
+            margin-left: 0.15rem;
+        }
+        .action-btns {
+            display: flex;
+            gap: 0.2rem;
+            align-items: center;
+        }
+        .action-btns button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.15rem 0.3rem;
+            border-radius: 0.3rem;
+            transition: all 0.2s ease;
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+        .action-btns button:hover {
+            background: #f3f4f6;
+            color: #ef241e;
+        }
+        .action-btns .whatsapp-btn {
+            color: #25D366;
+        }
+        .action-btns .whatsapp-btn:hover {
+            background: #ecfdf5;
+            color: #059669;
+        }
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+        .no-data i {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #d1d5db;
+        }
+
+        .pagination-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+        .pagination-wrap .page-btns {
+            display: flex;
+            gap: 0.2rem;
+            align-items: center;
+        }
+        .pagination-wrap .page-btns button {
+            padding: 0.2rem 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.3rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+            color: #374151;
+            min-width: 30px;
+            text-align: center;
+        }
+        .pagination-wrap .page-btns button:hover:not(:disabled):not(.active) {
+            background: #f3f4f6;
+        }
+        .pagination-wrap .page-btns button.active {
+            background: #ef241e;
+            color: white;
+            border-color: #ef241e;
+        }
+        .pagination-wrap .page-btns button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .pagination-wrap .entries-info {
+            font-size: 0.65rem;
+            color: #9ca3af;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 1rem;
+            max-width: 640px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.5rem 1.5rem 1.2rem;
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.92) translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .modal-box .modal-close {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 0.2rem;
+        }
+        .modal-box .modal-close:hover {
+            color: #1a1a1a;
+        }
+        .modal-box .modal-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .modal-box .modal-top .modal-name-wrap h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .modal-box .modal-top .modal-name-wrap .modal-sub {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+        .modal-box .modal-top .modal-status-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            background: #f9fafb;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.5rem;
+        }
+        .modal-box .modal-top .modal-status-wrap label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+        .modal-box .modal-top .modal-status-wrap select {
+            padding: 0.2rem 0.4rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.3rem;
+            font-size: 0.65rem;
+            outline: none;
+            background: white;
+        }
+        .modal-box .modal-top .modal-status-wrap select:focus {
+            border-color: #ef241e;
+        }
+        .modal-box .modal-top .modal-status-wrap .save-status-btn {
+            padding: 0.2rem 0.6rem;
+            background: #ef241e;
+            color: white;
+            border: none;
+            border-radius: 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .modal-box .modal-top .modal-status-wrap .save-status-btn:hover {
+            background: #cc1a00;
+        }
+        .modal-box .modal-top .modal-status-wrap .save-status-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .modal-box .modal-divider {
+            height: 1px;
+            background: #f3f4f6;
+            margin: 0.6rem 0;
+        }
+
+        .modal-box .modal-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+            flex-wrap: wrap;
+            align-items: baseline;
+        }
+        .modal-box .modal-row .label {
+            font-weight: 600;
+            color: #6b7280;
+            min-width: 70px;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .modal-box .modal-row .value {
+            color: #1f2937;
+            font-size: 0.8rem;
+            word-break: break-word;
+            flex: 1;
+        }
+        .modal-box .modal-row .value a {
+            color: #ef241e;
+            text-decoration: none;
+        }
+        .modal-box .modal-row .value a:hover {
+            text-decoration: underline;
+        }
+
+        .modal-box .modal-ratings {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 0.4rem 0;
+        }
+        .modal-box .modal-ratings .cat {
+            font-size: 0.65rem;
+            background: #f9fafb;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        .modal-box .modal-ratings .cat .stars {
+            color: #ffd200;
+            font-size: 0.55rem;
+            letter-spacing: 0.5px;
+        }
+        .modal-box .modal-ratings .cat .cat-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .modal-box .modal-ratings .cat .cat-score {
+            color: #9ca3af;
+            font-size: 0.55rem;
+        }
+
+        .modal-box .modal-feedback {
+            background: #f9fafb;
+            padding: 0.6rem 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+            margin: 0.4rem 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            border-left: 3px solid #ef241e;
+        }
+
+        .modal-box .modal-media {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin: 0.4rem 0;
+        }
+        .modal-box .modal-media .media-item {
+            flex: 1;
+            min-width: 150px;
+        }
+        .modal-box .modal-media .media-item label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+        .modal-box .modal-media .media-item audio {
+            width: 100%;
+            border-radius: 0.4rem;
+            height: 32px;
+        }
+        .modal-box .modal-media .media-item a {
+            font-size: 0.75rem;
+            color: #ef241e;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .modal-box .modal-media .media-item a:hover {
+            text-decoration: underline;
+        }
+
+        .modal-box .modal-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.6rem;
+            padding-top: 0.6rem;
+            border-top: 1px solid #f3f4f6;
+        }
+        .modal-box .modal-actions button {
+            padding: 0.35rem 0.9rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .modal-box .modal-actions .whatsapp-action {
+            background: #25D366;
+            color: white;
+        }
+        .modal-box .modal-actions .whatsapp-action:hover {
+            background: #1da851;
+            transform: scale(1.02);
+        }
+        .modal-box .modal-actions .export-action {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .modal-box .modal-actions .export-action:hover {
+            background: #e5e7eb;
+        }
+        .modal-box .modal-actions .delete-action {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .modal-box .modal-actions .delete-action:hover {
+            background: #fee2e2;
+        }
+
+        @media (max-width:640px) {
+            .dash-header {
+                padding: 0.4rem 0.6rem;
+            }
+            .dash-header .brand h1 {
+                font-size: 0.85rem;
+            }
+            .dash-header .brand img {
+                width: 30px;
+                height: 30px;
+            }
+            .dash-header .header-actions .user-badge {
+                font-size: 0.55rem;
+                padding: 0.15rem 0.5rem;
+            }
+            .dash-content {
+                padding: 0.6rem;
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.4rem;
+            }
+            .kpi-card {
+                padding: 0.6rem;
+            }
+            .kpi-card .kpi-value {
+                font-size: 1.2rem;
+            }
+            .kpi-card .kpi-icon {
+                font-size: 1rem;
+            }
+            .kpi-card .kpi-label {
+                font-size: 0.55rem;
+            }
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .table-controls {
+                flex-wrap: wrap;
+            }
+            .table-controls input,
+            .table-controls select {
+                min-width: 70px;
+                flex: 1;
+                font-size: 0.6rem;
+                padding: 0.2rem 0.4rem;
+            }
+            .modal-box {
+                padding: 1rem;
+                margin: 0.3rem;
+            }
+            .modal-box .modal-top {
+                flex-direction: column;
+            }
+            .modal-box .modal-row {
+                flex-direction: column;
+                gap: 0.1rem;
+            }
+            .modal-box .modal-row .label {
+                min-width: auto;
+            }
+            .modal-box .modal-ratings .cat {
+                font-size: 0.55rem;
+                padding: 0.1rem 0.3rem;
+            }
+            .table-section {
+                padding: 0.6rem;
+            }
+            .charts-grid {
+                gap: 0.6rem;
+            }
+            .chart-card {
+                padding: 0.6rem;
+            }
+            .chart-card .chart-wrap {
+                height: 140px;
+            }
+            .pagination-wrap {
+                flex-direction: column;
+                align-items: center;
+            }
+            .action-btns button {
+                font-size: 0.6rem;
+                padding: 0.1rem 0.2rem;
+            }
+            .login-box {
+                padding: 1.5rem 1.2rem;
+                margin: 0 0.8rem;
+            }
+        }
+
+        @media (max-width:480px) {
+            .kpi-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.3rem;
+            }
+            .kpi-card .kpi-value {
+                font-size: 1rem;
+            }
+            table {
+                font-size: 0.6rem;
+            }
+            th,
+            td {
+                padding: 0.2rem 0.25rem;
+            }
+            .status-badge {
+                font-size: 0.45rem;
+                padding: 0.05rem 0.3rem;
+            }
+            .rating-dots .dot {
+                font-size: 0.5rem;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ef241e;
+            border-radius: 10px;
+        }
+        .modal-box::-webkit-scrollbar {
+            width: 4px;
+        }
+        .modal-box::-webkit-scrollbar-thumb {
+            background: #ef241e;
+            border-radius: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: #1a1a1a;
+            color: white;
+            padding: 0.7rem 1.2rem;
+            border-radius: 0.6rem;
+            font-size: 0.8rem;
+            z-index: 300;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 400px;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+        .toast.error {
+            border-left: 4px solid #ef241e;
+        }
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <img src="Joe'z Logo.png" alt="Joe'z" class="logo-sm" id="loginLogo" />
+            <h2>Joe'z Dashboard</h2>
+            <p>Enter your credentials to access feedback data.</p>
+            <div class="input-group">
+                <label><i class="fas fa-user"></i> Username</label>
+                <input type="text" id="loginUsername" placeholder="Enter username" autofocus />
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter password" />
+            </div>
+            <button class="login-btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</button>
+            <div class="login-error" id="loginError">❌ Invalid username or password. Please try again.</div>
+        </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="dashboard-wrapper" id="dashboardWrapper">
+
+        <header class="dash-header">
+            <div class="brand">
+                <img src="Joe'z Logo.png" alt="Joe'z" />
+                <h1>Joe'z <span>Dashboard</span></h1>
+            </div>
+            <div class="header-actions">
+                <span class="user-badge" id="userBadge"><i class="fas fa-user-circle"></i> <span id="loggedInUser">Admin</span></span>
+                <span class="last-updated" id="lastUpdated"><i class="fas fa-clock"></i> Last updated: —</span>
+                <button class="refresh-btn" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </header>
+
+        <main class="dash-content">
+
+            <!-- KPI CARDS -->
+            <div class="kpi-grid" id="kpiGrid">
+                <div class="kpi-card accent">
+                    <span class="kpi-icon"><i class="fas fa-comments"></i></span>
+                    <div class="kpi-label">Total Feedback</div>
+                    <div class="kpi-value" id="totalFeedback">—</div>
+                    <div class="kpi-sub">All time entries</div>
+                </div>
+                <div class="kpi-card accent-yellow">
+                    <span class="kpi-icon"><i class="fas fa-star"></i></span>
+                    <div class="kpi-label">Avg. Rating</div>
+                    <div class="kpi-value" id="avgRating">—</div>
+                    <div class="kpi-sub">Out of 5.0</div>
+                </div>
+                <div class="kpi-card accent-green">
+                    <span class="kpi-icon"><i class="fas fa-microphone"></i></span>
+                    <div class="kpi-label">Voice Notes</div>
+                    <div class="kpi-value" id="voiceCount">—</div>
+                    <div class="kpi-sub">Recorded feedbacks</div>
+                </div>
+                <div class="kpi-card accent-blue">
+                    <span class="kpi-icon"><i class="fas fa-calendar-day"></i></span>
+                    <div class="kpi-label">New This Week</div>
+                    <div class="kpi-value" id="newThisWeek">—</div>
+                    <div class="kpi-sub">Last 7 days</div>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-icon"><i class="fas fa-clock"></i></span>
+                    <div class="kpi-label">Pending Review</div>
+                    <div class="kpi-value" id="pendingCount">—</div>
+                    <div class="kpi-sub">Status: New</div>
+                </div>
+            </div>
+
+            <!-- CHARTS -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h4><i class="fas fa-chart-bar" style="color:#ef241e;margin-right:0.2rem;"></i> Category Ratings</h4>
+                    <div class="chart-wrap" id="categoryChartWrap">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h4><i class="fas fa-chart-pie" style="color:#ffd200;margin-right:0.2rem;"></i> Rating Distribution</h4>
+                    <div class="chart-wrap" id="distributionChartWrap">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE -->
+            <div class="table-section">
+                <div class="table-header">
+                    <h3><i class="fas fa-list-ul"></i> All Feedback</h3>
+                    <div class="table-controls">
+                        <input type="text" id="searchInput" placeholder="🔍 Search name, phone..." />
+                        <select id="filterRating">
+                            <option value="all">All Ratings</option>
+                            <option value="5">5 ★</option>
+                            <option value="4">4 ★</option>
+                            <option value="3">3 ★</option>
+                            <option value="2">2 ★</option>
+                            <option value="1">1 ★</option>
+                        </select>
+                        <select id="filterStatus">
+                            <option value="all">All Status</option>
+                            <option value="new">New</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="replied">Replied</option>
+                        </select>
+                        <button class="export-btn" id="exportCsvBtn"><i class="fas fa-file-csv"></i> CSV</button>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-sort="timestamp">Date <i class="fas fa-sort"></i></th>
+                                <th data-sort="name">Name <i class="fas fa-sort"></i></th>
+                                <th data-sort="phone">Phone <i class="fas fa-sort"></i></th>
+                                <th data-sort="avgRating">Rating <i class="fas fa-sort"></i></th>
+                                <th data-sort="status">Status</th>
+                                <th data-sort="voice">Voice</th>
+                                <th style="text-align:center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td colspan="7" class="no-data"><i class="fas fa-spinner fa-spin"></i> Loading feedback...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-wrap">
+                    <div class="entries-info" id="entriesInfo">Showing 0 of 0 entries</div>
+                    <div class="page-btns" id="pageBtns">
+                        <button id="prevPage" disabled><i class="fas fa-chevron-left"></i></button>
+                        <span id="pageNumbers"></span>
+                        <button id="nextPage" disabled><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ===== DETAIL MODAL ===== -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-box">
+            <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+
+            <div class="modal-top">
+                <div class="modal-name-wrap">
+                    <h3 id="modalName">—</h3>
+                    <div class="modal-sub" id="modalTimestamp">—</div>
+                </div>
+                <div class="modal-status-wrap">
+                    <label>Status</label>
+                    <select id="modalStatusSelect">
+                        <option value="new">New</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="replied">Replied</option>
+                    </select>
+                    <button class="save-status-btn" id="modalSaveStatus"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </div>
+
+            <div class="modal-divider"></div>
+
+            <div class="modal-row">
+                <span class="label">Phone</span>
+                <span class="value" id="modalPhone">—</span>
+            </div>
+            <div class="modal-row">
+                <span class="label">Email</span>
+                <span class="value" id="modalEmail">—</span>
+            </div>
+            <div class="modal-row">
+                <span class="label">Address</span>
+                <span class="value" id="modalAddress">—</span>
+            </div>
+
+            <div class="modal-divider"></div>
+
+            <div class="modal-ratings" id="modalRatings"></div>
+
+            <div class="modal-divider"></div>
+
+            <div class="modal-feedback" id="modalFeedback">No detailed feedback provided.</div>
+
+            <div class="modal-media" id="modalMedia">
+                <div class="media-item" id="modalAudioWrap" style="display:none;">
+                    <label><i class="fas fa-microphone"></i> Voice Recording</label>
+                    <audio controls id="modalAudio"></audio>
+                </div>
+                <div class="media-item" id="modalAttachmentWrap" style="display:none;">
+                    <label><i class="fas fa-paperclip"></i> Attachment</label>
+                    <a href="#" target="_blank" id="modalAttachmentLink"><i class="fas fa-download"></i> Download</a>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="whatsapp-action" id="modalWhatsAppBtn"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                <button class="export-action" id="modalExportBtn"><i class="fas fa-file-csv"></i> Export</button>
+                <button class="delete-action" id="modalDeleteBtn" style="display:none;"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ============================================================ -->
+    <!--  JAVASCRIPT — LOGIN SYSTEM WITH SESSION                      -->
+    <!-- ============================================================ -->
+    <script>
+        // ================================================================
+        //  CONFIG — CREDENTIALS
+        // ================================================================
+        const VALID_USERNAME = 'ShayanAhmed';
+        const VALID_PASSWORD = 'joez2912##';
+        const SESSION_KEY = 'joez_dashboard_session';
+
+        // ================================================================
+        //  APPS SCRIPT URL
+        // ================================================================
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwjpwSTqGtnwbyxUiW1cs22ApOaLeIoS6YDQiq3pUoN0O7mQkz_sl9fHqd9fgk5Xw2n/exec';
+
+        // ================================================================
+        //  CSV FALLBACK
+        // ================================================================
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSVIs2d2JunXSPQ8k8UrU6VcABXDT7ErjkXMSGCk0aGW9b13F2naA0UOmp6d5A1MLdGAO_1W1RhPwBk/pub?gid=0&single=true&output=csv';
+        const CSV_PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL);
+
+        // ================================================================
+        //  PHONE FORMATTING HELPERS
+        // ================================================================
+        function formatPhone(phone) {
+            const str = String(phone || '').replace(/\s/g, '');
+            if (!str) return '—';
+            const digits = str.replace(/[^0-9+]/g, '');
+            if (digits.startsWith('+92')) {
+                const num = digits.substring(3);
+                if (num.length >= 10) {
+                    return '+92 ' + num.substring(0, 3) + ' ' + num.substring(3, 6) + ' ' + num.substring(6);
+                }
+                return '+92 ' + num;
+            }
+            if (digits.startsWith('92') && digits.length >= 11) {
+                const num = digits.substring(2);
+                return '+92 ' + num.substring(0, 3) + ' ' + num.substring(3, 6) + ' ' + num.substring(6);
+            }
+            if (digits.length === 10 && digits.startsWith('3')) {
+                const num = '0' + digits;
+                return num.substring(0, 4) + ' ' + num.substring(4, 7) + ' ' + num.substring(7);
+            }
+            if (digits.length === 11 && digits.startsWith('03')) {
+                return digits.substring(0, 4) + ' ' + digits.substring(4, 7) + ' ' + digits.substring(7);
+            }
+            if (digits.length === 11 && digits.startsWith('0')) {
+                return digits.substring(0, 4) + ' ' + digits.substring(4, 7) + ' ' + digits.substring(7);
+            }
+            return digits;
+        }
+
+        function getWhatsAppNumber(phone) {
+            const str = String(phone || '').replace(/\s/g, '');
+            if (!str) return '';
+            const digits = str.replace(/[^0-9]/g, '');
+            if (digits.startsWith('92') && digits.length >= 11) {
+                return digits;
+            }
+            if (digits.startsWith('0')) {
+                return '92' + digits.substring(1);
+            }
+            if (digits.startsWith('3') && digits.length === 10) {
+                return '92' + digits;
+            }
+            if (digits.length === 11 && !digits.startsWith('0')) {
+                return digits;
+            }
+            return digits;
+        }
+
+        // ================================================================
+        //  SESSION MANAGEMENT
+        // ================================================================
+        function isLoggedIn() {
+            const session = localStorage.getItem(SESSION_KEY);
+            if (!session) return false;
+            try {
+                const data = JSON.parse(session);
+                // Check if session is still valid (optional: add expiry)
+                return data.username === VALID_USERNAME;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function getSessionUser() {
+            const session = localStorage.getItem(SESSION_KEY);
+            if (!session) return null;
+            try {
+                return JSON.parse(session);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function setSession(username) {
+            localStorage.setItem(SESSION_KEY, JSON.stringify({
+                username: username,
+                loggedInAt: new Date().toISOString()
+            }));
+        }
+
+        function clearSession() {
+            localStorage.removeItem(SESSION_KEY);
+        }
+
+        // ================================================================
+        //  STATE
+        // ================================================================
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const pageSize = 10;
+        let sortKey = 'timestamp';
+        let sortAsc = false;
+        let selectedFeedbackId = null;
+        let chartInstances = {};
+        let isSavingStatus = false;
+        let usingFallback = false;
+
+        // ================================================================
+        //  DOM REFS
+        // ================================================================
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboardWrapper = document.getElementById('dashboardWrapper');
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const lastUpdated = document.getElementById('lastUpdated');
+        const loggedInUser = document.getElementById('loggedInUser');
+
+        const totalFeedbackEl = document.getElementById('totalFeedback');
+        const avgRatingEl = document.getElementById('avgRating');
+        const voiceCountEl = document.getElementById('voiceCount');
+        const newThisWeekEl = document.getElementById('newThisWeek');
+        const pendingCountEl = document.getElementById('pendingCount');
+
+        const tableBody = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchInput');
+        const filterRating = document.getElementById('filterRating');
+        const filterStatus = document.getElementById('filterStatus');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const entriesInfo = document.getElementById('entriesInfo');
+        const pageBtns = document.getElementById('pageBtns');
+        const prevPage = document.getElementById('prevPage');
+        const nextPage = document.getElementById('nextPage');
+        const pageNumbers = document.getElementById('pageNumbers');
+
+        const modal = document.getElementById('detailModal');
+        const modalClose = document.getElementById('modalClose');
+        const modalName = document.getElementById('modalName');
+        const modalTimestamp = document.getElementById('modalTimestamp');
+        const modalPhone = document.getElementById('modalPhone');
+        const modalEmail = document.getElementById('modalEmail');
+        const modalAddress = document.getElementById('modalAddress');
+        const modalRatings = document.getElementById('modalRatings');
+        const modalFeedback = document.getElementById('modalFeedback');
+        const modalAudioWrap = document.getElementById('modalAudioWrap');
+        const modalAudio = document.getElementById('modalAudio');
+        const modalAttachmentWrap = document.getElementById('modalAttachmentWrap');
+        const modalAttachmentLink = document.getElementById('modalAttachmentLink');
+        const modalStatusSelect = document.getElementById('modalStatusSelect');
+        const modalSaveStatus = document.getElementById('modalSaveStatus');
+        const modalWhatsAppBtn = document.getElementById('modalWhatsAppBtn');
+        const modalExportBtn = document.getElementById('modalExportBtn');
+        const modalDeleteBtn = document.getElementById('modalDeleteBtn');
+        const toast = document.getElementById('toast');
+
+        // ================================================================
+        //  TOAST
+        // ================================================================
+        let toastTimeout = null;
+
+        function showToast(message, type = 'info') {
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            clearTimeout(toastTimeout);
+            void toast.offsetWidth;
+            toast.classList.add('show');
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // ================================================================
+        //  AUTH LOGIN / LOGOUT
+        // ================================================================
+        function login() {
+            const username = loginUsername.value.trim();
+            const password = loginPassword.value.trim();
+
+            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+                setSession(username);
+                loginScreen.classList.add('hidden');
+                dashboardWrapper.classList.add('active');
+                loggedInUser.textContent = username;
+                loginError.style.display = 'none';
+                showToast('🔐 Welcome back, ' + username + '! Loading dashboard...', 'info');
+                fetchData();
+            } else {
+                loginError.style.display = 'block';
+                loginPassword.value = '';
+                loginUsername.focus();
+                showToast('❌ Invalid username or password', 'error');
+            }
+        }
+
+        function logout() {
+            clearSession();
+            dashboardWrapper.classList.remove('active');
+            loginScreen.classList.remove('hidden');
+            loginUsername.value = '';
+            loginPassword.value = '';
+            loginError.style.display = 'none';
+            loggedInUser.textContent = 'Admin';
+            showToast('👋 Logged out successfully', 'info');
+        }
+
+        function checkSession() {
+            if (isLoggedIn()) {
+                const session = getSessionUser();
+                loginScreen.classList.add('hidden');
+                dashboardWrapper.classList.add('active');
+                loggedInUser.textContent = session ? session.username : 'Admin';
+                loginError.style.display = 'none';
+                fetchData();
+                return true;
+            }
+            return false;
+        }
+
+        loginBtn.addEventListener('click', login);
+        loginUsername.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginPassword.focus(); });
+        loginPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+
+        logoutBtn.addEventListener('click', logout);
+
+        // ================================================================
+        //  PARSE CSV
+        // ================================================================
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(',').map(h => h.toString().trim().toLowerCase().replace(/\s+/g, '_'));
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim());
+                if (values.length === 1 && values[0] === '') continue;
+                const obj = {};
+                headers.forEach((h, idx) => {
+                    obj[h] = values[idx] || '';
+                });
+                result.push(obj);
+            }
+            return result;
+        }
+
+        // ================================================================
+        //  PROCESS DATA
+        // ================================================================
+        function processData(data) {
+            return data.map((row, idx) => {
+                const cats = ['taste', 'quality', 'pricing', 'sitting', 'delivery', 'packaging'];
+                cats.forEach(cat => {
+                    row[cat] = parseFloat(row[cat]) || 0;
+                });
+                row.id = row.id || 'fb_' + (idx + 1);
+                row.status = row.status || 'new';
+                const sum = cats.reduce((s, c) => s + (row[c] || 0), 0);
+                row.avgRating = Math.round((sum / cats.length) * 10) / 10;
+                row.avg_rating = row.avgRating;
+                row.timestampRaw = row.timestamp_raw || new Date(row.timestamp || Date.now()).getTime();
+                row.voiceUrl = row.voiceurl || row.voice_url || '';
+                row.attachmentUrl = row.attachmenturl || row.attachment_url || '';
+                row.phoneRaw = row.phone || '';
+                row.phoneFormatted = formatPhone(row.phone);
+                row.phoneWhatsApp = getWhatsAppNumber(row.phone);
+                return row;
+            });
+        }
+
+        // ================================================================
+        //  FETCH DATA — APPS SCRIPT + CSV FALLBACK
+        // ================================================================
+        async function fetchData() {
+            tableBody.innerHTML =
+                `<tr><td colspan="7" class="no-data"><i class="fas fa-spinner fa-spin"></i> Loading feedback...</td></tr>`;
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            usingFallback = false;
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL);
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data !== undefined) {
+                        if (result.data && result.data.length > 0) {
+                            allData = processData(result.data);
+                            applyFilters();
+                            updateKPI();
+                            updateCharts();
+                            const count = allData.length;
+                            lastUpdated.textContent = 'Last updated: ' + new Date().toLocaleString() + ' (' + count +
+                                ' entries)';
+                            showToast('✅ Loaded ' + count + ' feedback entries from Apps Script', 'success');
+                            refreshBtn.disabled = false;
+                            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                            return;
+                        } else {
+                            showEmptyState('📭 No data found in the sheet. Add some feedback entries!');
+                            showToast('📭 No data found', 'info');
+                            refreshBtn.disabled = false;
+                            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                            return;
+                        }
+                    }
+                }
+
+                // ── Fallback to CSV ──
+                console.log('🔄 Apps Script failed, trying CSV fallback...');
+                showToast('🔄 Trying CSV fallback...', 'info');
+                usingFallback = true;
+
+                const csvResponse = await fetch(CSV_PROXY_URL);
+                if (!csvResponse.ok) throw new Error('CSV fetch failed: ' + csvResponse.status);
+                const csvText = await csvResponse.text();
+                if (!csvText || csvText.trim() === '') {
+                    showEmptyState('📭 CSV is empty. Add some data to your sheet!');
+                    showToast('📭 CSV is empty', 'error');
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                    return;
+                }
+
+                const parsedData = parseCSV(csvText);
+                if (parsedData.length === 0) {
+                    showEmptyState('📭 No valid data found in CSV.');
+                    showToast('📭 No valid data found', 'error');
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                    return;
+                }
+
+                allData = processData(parsedData);
+                applyFilters();
+                updateKPI();
+                updateCharts();
+                const count = allData.length;
+                lastUpdated.textContent = 'Last updated: ' + new Date().toLocaleString() + ' (' + count +
+                ' entries) [CSV Fallback]';
+                showToast('✅ Loaded ' + count + ' feedback entries from CSV fallback', 'success');
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+                showToast('❌ Error loading data: ' + err.message, 'error');
+                showEmptyState('⚠️ Error loading data: ' + err.message + '. Check your connection.');
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+            }
+        }
+
+        // ================================================================
+        //  SHOW EMPTY STATE
+        // ================================================================
+        function showEmptyState(message) {
+            allData = [];
+            filteredData = [];
+            currentPage = 1;
+
+            totalFeedbackEl.textContent = '0';
+            avgRatingEl.textContent = '—';
+            voiceCountEl.textContent = '0';
+            newThisWeekEl.textContent = '0';
+            pendingCountEl.textContent = '0';
+
+            if (chartInstances.category) {
+                chartInstances.category.destroy();
+                chartInstances.category = null;
+            }
+            if (chartInstances.distribution) {
+                chartInstances.distribution.destroy();
+                chartInstances.distribution = null;
+            }
+
+            document.getElementById('categoryChartWrap').innerHTML =
+                `<div class="empty-chart"><i class="fas fa-chart-bar"></i> No data to display</div>`;
+            document.getElementById('distributionChartWrap').innerHTML =
+                `<div class="empty-chart"><i class="fas fa-chart-pie"></i> No data to display</div>`;
+
+            tableBody.innerHTML =
+                `<tr><td colspan="7" class="no-data"><i class="fas fa-inbox"></i> ${message}</td></tr>`;
+            entriesInfo.textContent = 'Showing 0 of 0 entries';
+            pageNumbers.innerHTML = '';
+            prevPage.disabled = true;
+            nextPage.disabled = true;
+            lastUpdated.textContent = 'Last updated: ' + new Date().toLocaleString();
+        }
+
+        // ================================================================
+        //  FILTER & SORT
+        // ================================================================
+        function applyFilters() {
+            const search = searchInput.value.toLowerCase().trim();
+            const ratingFilter = filterRating.value;
+            const statusFilter = filterStatus.value;
+
+            filteredData = allData.filter(row => {
+                const name = (row.name || '').toLowerCase();
+                const phone = String(row.phoneRaw || '');
+                const email = (row.email || '').toLowerCase();
+                const matchSearch = name.includes(search) || phone.includes(search) || email.includes(search);
+                const matchRating = ratingFilter === 'all' || Math.round(row.avgRating || 0) === parseInt(ratingFilter);
+                const matchStatus = statusFilter === 'all' || (row.status || 'new') === statusFilter;
+                return matchSearch && matchRating && matchStatus;
+            });
+
+            filteredData.sort((a, b) => {
+                let valA = a[sortKey] || '';
+                let valB = b[sortKey] || '';
+                if (sortKey === 'timestamp') {
+                    valA = a.timestampRaw || 0;
+                    valB = b.timestampRaw || 0;
+                }
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+                if (valA < valB) return sortAsc ? -1 : 1;
+                if (valA > valB) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+        filterRating.addEventListener('change', applyFilters);
+        filterStatus.addEventListener('change', applyFilters);
+
+        // ================================================================
+        //  TABLE SORT
+        // ================================================================
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const key = th.dataset.sort;
+                if (sortKey === key) {
+                    sortAsc = !sortAsc;
+                } else {
+                    sortKey = key;
+                    sortAsc = false;
+                }
+                applyFilters();
+                document.querySelectorAll('th[data-sort] i').forEach(icon => {
+                    icon.className = 'fas fa-sort';
+                    icon.style.opacity = '0.4';
+                });
+                const icon = th.querySelector('i');
+                icon.className = sortAsc ? 'fas fa-sort-up' : 'fas fa-sort-down';
+                icon.style.opacity = '1';
+            });
+        });
+
+        // ================================================================
+        //  RENDER TABLE
+        // ================================================================
+        function renderTable() {
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, filteredData.length);
+            const pageData = filteredData.slice(start, end);
+
+            if (pageData.length === 0) {
+                tableBody.innerHTML =
+                    `<tr><td colspan="7" class="no-data"><i class="fas fa-inbox"></i> No feedback found.</td></tr>`;
+            } else {
+                tableBody.innerHTML = pageData.map(row => {
+                    const phoneDisplay = row.phoneFormatted || row.phoneRaw || '—';
+                    const whatsappLink = row.phoneWhatsApp ? 'https://wa.me/' + row.phoneWhatsApp +
+                        '?text=Hi%20' + encodeURIComponent(row.name || '') +
+                        '%2C%20thank%20you%20for%20your%20feedback%20on%20Joe\'z.%20We%20would%20love%20to%20hear%20more%20from%20you!' :
+                        '#';
+                    return `
+                        <tr class="clickable" data-id="${row.id}">
+                            <td style="white-space:nowrap;font-size:0.65rem;">${row.timestamp || '—'}</td>
+                            <td><strong>${row.name || 'Anonymous'}</strong></td>
+                            <td>${phoneDisplay}</td>
+                            <td>
+                                <div class="rating-dots">
+                                    ${[1,2,3,4,5].map(s => `<span class="dot ${s <= Math.round(row.avgRating || 0) ? 'filled' : ''}">★</span>`).join('')}
+                                    <span class="rating-num">${row.avgRating || 0}</span>
+                                </div>
+                            </td>
+                            <td><span class="status-badge ${row.status || 'new'}">${row.status || 'new'}</span></td>
+                            <td style="text-align:center;">${row.voiceUrl ? '<i class="fas fa-microphone" style="color:#22c55e;font-size:0.8rem;"></i>' : '<i class="fas fa-minus" style="color:#d1d5db;font-size:0.6rem;"></i>'}</td>
+                            <td>
+                                <div class="action-btns" style="justify-content:center;">
+                                    ${row.phoneWhatsApp ? `<a href="${whatsappLink}" target="_blank" class="whatsapp-btn" style="text-decoration:none;font-size:0.8rem;" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>` : '<span style="color:#d1d5db;font-size:0.6rem;">—</span>'}
+                                    <button class="view-btn" data-id="${row.id}" title="View Details"><i class="fas fa-eye"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                document.querySelectorAll('.view-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = btn.dataset.id;
+                        const row = filteredData.find(d => d.id === id);
+                        if (row) openModal(row);
+                    });
+                });
+
+                document.querySelectorAll('.clickable').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const id = el.dataset.id;
+                        const row = filteredData.find(d => d.id === id);
+                        if (row) openModal(row);
+                    });
+                });
+            }
+
+            const total = filteredData.length;
+            const totalPages = Math.ceil(total / pageSize) || 1;
+            entriesInfo.textContent = `Showing ${total === 0 ? 0 : start + 1} to ${end} of ${total} entries`;
+
+            prevPage.disabled = currentPage <= 1;
+            nextPage.disabled = currentPage >= totalPages;
+
+            pageNumbers.innerHTML = '';
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = i === currentPage ? 'active' : '';
+                btn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTable();
+                });
+                pageNumbers.appendChild(btn);
+            }
+        }
+
+        prevPage.addEventListener('click', () => {
+            if (currentPage > 1) { currentPage--;
+                renderTable(); }
+        });
+        nextPage.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            if (currentPage < totalPages) { currentPage++;
+                renderTable(); }
+        });
+
+        // ================================================================
+        //  KPI UPDATE
+        // ================================================================
+        function updateKPI() {
+            const total = allData.length;
+            const avg = total > 0 ? allData.reduce((s, r) => s + (r.avgRating || 0), 0) / total : 0;
+            const voice = allData.filter(r => r.voiceUrl).length;
+            const now = Date.now();
+            const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+            const newThisWeek = allData.filter(r => (r.timestampRaw || 0) > weekAgo).length;
+            const pending = allData.filter(r => (r.status || 'new') === 'new').length;
+
+            totalFeedbackEl.textContent = total;
+            avgRatingEl.textContent = avg.toFixed(1);
+            voiceCountEl.textContent = voice;
+            newThisWeekEl.textContent = newThisWeek;
+            pendingCountEl.textContent = pending;
+        }
+
+        // ================================================================
+        //  CHARTS
+        // ================================================================
+        function updateCharts() {
+            const data = allData;
+            if (data.length === 0) {
+                document.getElementById('categoryChartWrap').innerHTML =
+                    `<div class="empty-chart"><i class="fas fa-chart-bar"></i> No data to display</div>`;
+                document.getElementById('distributionChartWrap').innerHTML =
+                    `<div class="empty-chart"><i class="fas fa-chart-pie"></i> No data to display</div>`;
+                return;
+            }
+
+            document.getElementById('categoryChartWrap').innerHTML = `<canvas id="categoryChart"></canvas>`;
+            document.getElementById('distributionChartWrap').innerHTML = `<canvas id="distributionChart"></canvas>`;
+
+            const cats = ['taste', 'quality', 'pricing', 'sitting', 'delivery', 'packaging'];
+            const labels = ['Taste', 'Quality', 'Pricing', 'Sitting', 'Delivery', 'Packaging'];
+            const averages = cats.map(cat => {
+                const sum = data.reduce((s, r) => s + (r[cat] || 0), 0);
+                return sum / data.length;
+            });
+
+            const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            data.forEach(r => {
+                const key = Math.round(r.avgRating || 0);
+                if (key >= 1 && key <= 5) dist[key]++;
+            });
+
+            if (chartInstances.category) chartInstances.category.destroy();
+            if (chartInstances.distribution) chartInstances.distribution.destroy();
+
+            const ctx1 = document.getElementById('categoryChart').getContext('2d');
+            chartInstances.category = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Rating',
+                        data: averages,
+                        backgroundColor: ['#ef241e', '#ef241e', '#ef241e', '#ef241e', '#ef241e', '#ef241e'],
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 5, ticks: { stepSize: 1, font: { size: 9 } } },
+                        x: { ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('distributionChart').getContext('2d');
+            chartInstances.distribution = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['5 ★', '4 ★', '3 ★', '2 ★', '1 ★'],
+                    datasets: [{
+                        data: [dist[5], dist[4], dist[3], dist[2], dist[1]],
+                        backgroundColor: ['#22c55e', '#ffd200', '#f59e0b', '#f97316', '#ef241e'],
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { boxWidth: 10, padding: 6, font: { size: 9 } }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // ================================================================
+        //  MODAL
+        // ================================================================
+        function openModal(row) {
+            selectedFeedbackId = row.id;
+            modalName.textContent = row.name || 'Anonymous';
+            modalTimestamp.textContent = row.timestamp || '—';
+            modalPhone.textContent = row.phoneFormatted || row.phoneRaw || '—';
+            modalEmail.textContent = row.email || '—';
+            modalAddress.textContent = row.address || '—';
+
+            const cats = [
+                { key: 'taste', label: 'Taste' },
+                { key: 'quality', label: 'Quality' },
+                { key: 'pricing', label: 'Pricing' },
+                { key: 'sitting', label: 'Sitting' },
+                { key: 'delivery', label: 'Delivery' },
+                { key: 'packaging', label: 'Packaging' }
+            ];
+            modalRatings.innerHTML = cats.map(c => `
+                    <div class="cat">
+                        <span class="cat-label">${c.label}</span>
+                        <span class="stars">${'★'.repeat(row[c.key] || 0)}${'☆'.repeat(5 - (row[c.key] || 0))}</span>
+                        <span class="cat-score">${row[c.key] || 0}</span>
+                    </div>
+                `).join('');
+
+            modalFeedback.textContent = row.feedback || 'No detailed feedback provided.';
+
+            if (row.voiceUrl) {
+                modalAudioWrap.style.display = 'block';
+                modalAudio.src = row.voiceUrl;
+                modalAudio.load();
+            } else {
+                modalAudioWrap.style.display = 'none';
+                modalAudio.src = '';
+            }
+
+            if (row.attachmentUrl) {
+                modalAttachmentWrap.style.display = 'block';
+                modalAttachmentLink.href = row.attachmentUrl;
+                modalAttachmentLink.textContent = 'Download Attachment';
+            } else {
+                modalAttachmentWrap.style.display = 'none';
+            }
+
+            modalStatusSelect.value = row.status || 'new';
+
+            const waNumber = row.phoneWhatsApp || '';
+            modalWhatsAppBtn.onclick = () => {
+                if (waNumber) {
+                    const url = 'https://wa.me/' + waNumber + '?text=Hi%20' + encodeURIComponent(row.name ||
+                        '') + '%2C%20thank%20you%20for%20your%20feedback%20on%20Joe\'z.%20We%20would%20love%20to%20hear%20more%20from%20you!';
+                    window.open(url, '_blank');
+                } else {
+                    showToast('⚠️ No phone number available for WhatsApp', 'error');
+                }
+            };
+            modalWhatsAppBtn.style.opacity = waNumber ? '1' : '0.4';
+            modalWhatsAppBtn.style.cursor = waNumber ? 'pointer' : 'not-allowed';
+
+            modalExportBtn.onclick = () => {
+                exportSingleFeedback(row);
+            };
+
+            modalSaveStatus.disabled = false;
+            modalSaveStatus.innerHTML = '<i class="fas fa-save"></i> Save';
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            selectedFeedbackId = null;
+            modalAudio.pause();
+        }
+
+        modalClose.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+        // ================================================================
+        //  SAVE STATUS
+        // ================================================================
+        modalSaveStatus.addEventListener('click', async () => {
+            if (!selectedFeedbackId || isSavingStatus) return;
+            isSavingStatus = true;
+            modalSaveStatus.disabled = true;
+            modalSaveStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            const newStatus = modalStatusSelect.value;
+
+            try {
+                const row = allData.find(d => d.id === selectedFeedbackId);
+                if (row) {
+                    row.status = newStatus;
+                    const fRow = filteredData.find(d => d.id === selectedFeedbackId);
+                    if (fRow) fRow.status = newStatus;
+                    updateKPI();
+                    renderTable();
+                }
+
+                if (!usingFallback) {
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            action: 'updateStatus',
+                            id: selectedFeedbackId,
+                            status: newStatus
+                        }).toString()
+                    });
+                    showToast('✅ Status updated to "' + newStatus + '"', 'success');
+                } else {
+                    showToast('⚠️ Status updated locally (CSV fallback mode - sync disabled)', 'info');
+                }
+                closeModal();
+
+            } catch (err) {
+                console.warn('Could not sync status:', err);
+                showToast('⚠️ Status updated locally but sync failed', 'error');
+                closeModal();
+            } finally {
+                isSavingStatus = false;
+                modalSaveStatus.disabled = false;
+                modalSaveStatus.innerHTML = '<i class="fas fa-save"></i> Save';
+            }
+        });
+
+        // ================================================================
+        //  EXPORT SINGLE FEEDBACK
+        // ================================================================
+        function exportSingleFeedback(row) {
+            const headers = ['Timestamp', 'Name', 'Phone', 'Email', 'Address', 'Taste', 'Quality', 'Pricing', 'Sitting',
+                'Delivery', 'Packaging', 'Avg Rating', 'Feedback', 'Status'
+            ];
+            const data = [
+                row.timestamp || '',
+                row.name || '',
+                row.phoneRaw || '',
+                row.email || '',
+                row.address || '',
+                row.taste || 0,
+                row.quality || 0,
+                row.pricing || 0,
+                row.sitting || 0,
+                row.delivery || 0,
+                row.packaging || 0,
+                row.avgRating || 0,
+                row.feedback || '',
+                row.status || ''
+            ];
+
+            let csv = headers.join(',') + '\n';
+            csv += data.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `feedback_${row.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            showToast('📥 Downloaded feedback for ' + row.name, 'success');
+        }
+
+        // ================================================================
+        //  EXPORT CSV (All / Filtered)
+        // ================================================================
+        exportCsvBtn.addEventListener('click', () => {
+            const data = filteredData.length > 0 ? filteredData : allData;
+            if (data.length === 0) {
+                showToast('📭 No data to export', 'error');
+                return;
+            }
+
+            const headers = ['Timestamp', 'Name', 'Phone', 'Email', 'Address', 'Taste', 'Quality', 'Pricing', 'Sitting',
+                'Delivery', 'Packaging', 'Avg Rating', 'Feedback', 'Status'
+            ];
+            const rows = data.map(r => [
+                r.timestamp || '',
+                r.name || '',
+                r.phoneRaw || '',
+                r.email || '',
+                r.address || '',
+                r.taste || 0,
+                r.quality || 0,
+                r.pricing || 0,
+                r.sitting || 0,
+                r.delivery || 0,
+                r.packaging || 0,
+                r.avgRating || 0,
+                r.feedback || '',
+                r.status || ''
+            ]);
+
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `joez_feedback_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            showToast('📥 Exported ' + data.length + ' entries', 'success');
+        });
+
+        // ================================================================
+        //  REFRESH
+        // ================================================================
+        refreshBtn.addEventListener('click', () => {
+            fetchData();
+        });
+
+        // ================================================================
+        //  INIT — CHECK SESSION ON PAGE LOAD
+        // ================================================================
+        console.log('🔐 Joe\'z Dashboard loaded.');
+        console.log('📊 Apps Script URL:', APPS_SCRIPT_URL);
+
+        // Check if user is already logged in
+        const sessionActive = checkSession();
+
+        if (!sessionActive) {
+            // Show login screen, auto-focus username
+            loginUsername.focus();
+            console.log('💡 Please login to continue.');
+        }
+
+        // Auto-login for demo (uncomment to skip login)
+        // loginUsername.value = 'ShayanAhmed';
+        // loginPassword.value = 'joez2912##';
+        // login();
+    </script>
+</body>
+</html>
